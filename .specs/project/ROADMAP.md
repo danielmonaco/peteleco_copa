@@ -9,7 +9,7 @@ Objetivo: uma partida completa funciona do menu ao fim, com física fiel e turno
 | Feature | Cobre (FR) | Status |
 |---|---|---|
 | **core-gameplay** — render do campo, física de alto atrito, peteleco (slingshot), turnos, gol, vitória | FR-004, FR-005, FR-006, FR-007, FR-008, FR-009 | ✅ Done (2026-06-13) |
-| **match-flow-ui** — tela inicial, seleção das 48 seleções, configuração, HUD, acessibilidade | FR-001, FR-002, FR-003, FR-010, FR-011 | Pending |
+| **match-flow-ui** — tela inicial, seleção das 48 seleções, configuração, HUD, acessibilidade | FR-001, FR-002, FR-003, FR-010, FR-011 | ✅ Done (2026-06-13) |
 
 Dependência: `match-flow-ui` fornece menu/seleção/config que entram na partida de `core-gameplay`; a malha de estado (máquina de fases) é compartilhada. Construir o esqueleto de estado + render + física antes das telas, conforme PRD §13.
 

@@ -3,7 +3,7 @@ import { build } from 'esbuild'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 
 const result = await build({
-  entryPoints: ['src/main.js'],
+  entryPoints: ['src/app.js'],
   bundle: true,
   format: 'iife',
   minify: true,
@@ -16,7 +16,7 @@ const template = await readFile('index.html', 'utf8')
 
 // Remove o <script type="module" src=...> de dev e injeta o JS inline.
 const html = template.replace(
-  /<script[^>]*src="\.\/src\/main\.js"[^>]*><\/script>/,
+  /<script[^>]*src="\.\/src\/app\.js"[^>]*><\/script>/,
   `<script>${js}</script>`,
 )
 

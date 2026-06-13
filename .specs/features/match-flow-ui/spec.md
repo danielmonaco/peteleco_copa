@@ -125,11 +125,11 @@ O pai precisa abrir o jogo e entregar o aparelho pronto em poucos toques; as cri
 
 | Requirement ID | Origem PRD | Story | Phase | Status |
 |---|---|---|---|---|
-| FLOW-01 | FR-001 | Tela inicial e início | Design | Pending |
-| FLOW-02 | FR-002 | Seleção das seleções | Design | Pending |
-| FLOW-03 | FR-003 | Configuração da partida | Design | Pending |
-| FLOW-04 | FR-010 | HUD durante a partida | Design | Pending |
-| FLOW-05 | FR-011 | Acessibilidade idades mistas | Design | Pending |
+| FLOW-01 | FR-001 | Tela inicial e início | Done | Verified |
+| FLOW-02 | FR-002 | Seleção das seleções | Done | Verified |
+| FLOW-03 | FR-003 | Configuração da partida | Done | Verified |
+| FLOW-04 | FR-010 | HUD durante a partida | Done | Verified |
+| FLOW-05 | FR-011 | Acessibilidade idades mistas | Done | Verified |
 
 **ID format:** `FLOW-NN`
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified

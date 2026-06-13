@@ -26,7 +26,7 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 
 ## Blockers
 
-- **B-01** — Lista oficial das 48 seleções da Copa 2026 ainda não confirmada (depende da classificação; só EUA/México/Canadá garantidos como sede). Mitigação: placeholder editável em `teams.js` com as seleções conhecidas + slots a confirmar; não trava o build do núcleo.
+- **B-01** — Lista oficial das 48 seleções da Copa 2026 ainda não confirmada (depende da classificação; só EUA/México/Canadá garantidos como sede). Mitigação **aplicada** (2026-06-13): `src/teams.js` traz uma lista **provisória** de 48 seleções reais (header avisa que NÃO é a oficial), editável; a grade de seleção já funciona com ela. Ação pendente: substituir pela lista oficial quando a classificação fechar.
 
 ## Lessons
 

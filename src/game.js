@@ -7,14 +7,17 @@ import { resetBall, setDifficulty } from './state.js'
 import { DIFFICULTY_ORDER, getDifficulty } from './difficulty.js'
 import { createRenderer, resize, draw, worldToScreen, screenToWorld } from './render.js'
 
-export function createGame(canvas, state) {
+export function createGame(canvas, state, opts = {}) {
   const r = createRenderer(canvas)
+  const manageScreens = opts.manageScreens !== false // default true (modo standalone)
+  const onGameOver = typeof opts.onGameOver === 'function' ? opts.onGameOver : null
 
   let raf = 0
   let last = 0
   let acc = 0
   let goalFlash = 0 // segundos restantes de comemoração mínima
   let goalScorer = null
+  let gameOverFired = false // garante onGameOver 1x por partida
 
   // estado de mira (em px de tela, p/ feel consistente entre escalas)
   let aiming = false
@@ -33,6 +36,10 @@ export function createGame(canvas, state) {
     if (goal) {
       goalScorer = registerGoal(state, goal) // repõe bola, define saída, vitória
       goalFlash = 1.4
+      if (state.phase === 'gameover' && onGameOver && !gameOverFired) {
+        gameOverFired = true
+        onGameOver(state.winner)
+      }
     } else if (isBallStopped(state.ball)) {
       onBallSettled(state)
     }
@@ -50,11 +57,11 @@ export function createGame(canvas, state) {
     }
     draw(r, state, currentAim())
     if (state.phase === 'config') {
-      drawConfig()
+      if (manageScreens) drawConfig()
     } else {
       drawHud()
       if (goalFlash > 0) drawGoalFlash()
-      if (state.phase === 'gameover') drawGameOver()
+      if (manageScreens && state.phase === 'gameover') drawGameOver()
     }
     raf = requestAnimationFrame(frame)
   }
@@ -68,6 +75,7 @@ export function createGame(canvas, state) {
   function onDown(e) {
     const sp = toScreen(e)
     if (state.phase === 'config') {
+      if (!manageScreens) return // o app DOM cuida da config
       const hit = hitButton(difficultyButtons(), sp)
       if (hit) {
         setDifficulty(state, hit.key)
@@ -76,6 +84,7 @@ export function createGame(canvas, state) {
       return
     }
     if (state.phase === 'gameover') {
+      if (!manageScreens) return // o app DOM cuida do fim de jogo
       const hit = hitButton(gameOverButtons(), sp)
       if (hit && hit.key === 'difficulty') state.phase = 'config'
       else restart()
@@ -121,6 +130,7 @@ export function createGame(canvas, state) {
     resetBall(state.ball, state.playfield)
     state.phase = 'playing'
     goalFlash = 0
+    gameOverFired = false
   }
 
   // --- Botões (seletor de dificuldade / fim de jogo) ---
@@ -261,18 +271,26 @@ export function createGame(canvas, state) {
     for (const b of gameOverButtons()) drawButton(b, false)
   }
 
+  const onCancel = () => { aiming = false; pointerScreen = null }
+  const onResize = () => resize(r)
+
   function start() {
     canvas.addEventListener('pointerdown', onDown)
     canvas.addEventListener('pointermove', onMove)
     canvas.addEventListener('pointerup', onUp)
-    canvas.addEventListener('pointercancel', () => { aiming = false; pointerScreen = null })
-    window.addEventListener('resize', () => resize(r))
+    canvas.addEventListener('pointercancel', onCancel)
+    window.addEventListener('resize', onResize)
     raf = requestAnimationFrame(frame)
   }
 
   function stop() {
     cancelAnimationFrame(raf)
+    canvas.removeEventListener('pointerdown', onDown)
+    canvas.removeEventListener('pointermove', onMove)
+    canvas.removeEventListener('pointerup', onUp)
+    canvas.removeEventListener('pointercancel', onCancel)
+    window.removeEventListener('resize', onResize)
   }
 
-  return { start, stop, restart, renderer: r }
+  return { start, stop, restart, state, renderer: r }
 }
