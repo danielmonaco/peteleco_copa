@@ -69,8 +69,11 @@ O pai precisa abrir o jogo e entregar o aparelho pronto em poucos toques; as cri
 **Acceptance Criteria**:
 1. WHEN a config abre THEN o sistema SHALL oferecer seletor de toques por vez 1/2/3 com padrão 3.
 2. WHEN a config abre THEN o sistema SHALL oferecer seletor de gols para vencer 3/5 com padrão 5.
-3. WHEN o jogador ajusta as opções THEN os controles SHALL ser botões grandes do tipo seletor, sem digitação.
-4. WHEN a partida começa THEN a configuração escolhida SHALL valer para a partida inteira.
+3. WHEN a config abre THEN o sistema SHALL oferecer seletor de dificuldade Fácil/Médio/Difícil com padrão Médio (presets de tamanho de jogadores/goleiro e largura do gol — ver D-17; modelo já implementado em `src/difficulty.js`).
+4. WHEN o jogador ajusta as opções THEN os controles SHALL ser botões grandes do tipo seletor, sem digitação.
+5. WHEN a partida começa THEN a configuração escolhida SHALL valer para a partida inteira.
+
+> Nota: um seletor tátil de dificuldade já existe como semente na fase `config` do core (`game.js`); a tela completa de config desta feature deve absorvê-lo junto com toques e gols.
 
 **Independent Test**: Abrir config com 3 toques / 5 gols por padrão, trocar para 1 toque / 3 gols por botões, começar e confirmar que a partida respeita os valores. Cobre FR-003.
 

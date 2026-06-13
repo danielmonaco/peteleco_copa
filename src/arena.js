@@ -4,9 +4,9 @@ import { PLAYFIELD, WALL, GOAL_WIDTH, PEG_RADIUS } from './constants.js'
 // Arena como retângulo (colisão) com duas aberturas de gol no topo e na base.
 // Os cantos são arredondados apenas no render (CORNER); a colisão usa o retângulo
 // por estabilidade (ver design.md / D-02).
-export function buildArena(pf = PLAYFIELD) {
+export function buildArena(pf = PLAYFIELD, opts = {}) {
   const cx = pf.w / 2
-  const half = GOAL_WIDTH / 2
+  const half = (opts.goalWidth ?? GOAL_WIDTH) / 2
   return {
     left: WALL,
     right: pf.w - WALL,
@@ -28,8 +28,10 @@ export function goalLine(side, arena = buildArena()) {
 
 // Formação fixa espelhada (D-06): 5 pegs por time, numerados 1..5.
 // Time A na metade de baixo; Time B espelhado na metade de cima (B.y = h - A.y).
-export function buildPegs(pf = PLAYFIELD) {
+export function buildPegs(pf = PLAYFIELD, opts = {}) {
   const cx = pf.w / 2
+  const pegR = opts.pegRadius ?? PEG_RADIUS
+  const keeperR = opts.keeperRadius ?? pegR
   const baseA = [
     [cx, pf.h - 80, 1], // "goleiro"
     [cx - 120, pf.h - 195, 2], // zaga
@@ -37,12 +39,13 @@ export function buildPegs(pf = PLAYFIELD) {
     [cx - 78, pf.h - 330, 4], // meio
     [cx + 78, pf.h - 330, 5],
   ]
+  const radiusFor = (number) => (number === 1 ? keeperR : pegR)
   const pegs = []
   for (const [x, y, number] of baseA) {
-    pegs.push({ x, y, radius: PEG_RADIUS, team: 'A', number })
+    pegs.push({ x, y, radius: radiusFor(number), team: 'A', number })
   }
   for (const [x, y, number] of baseA) {
-    pegs.push({ x, y: pf.h - y, radius: PEG_RADIUS, team: 'B', number })
+    pegs.push({ x, y: pf.h - y, radius: radiusFor(number), team: 'B', number })
   }
   return pegs
 }

@@ -3,7 +3,8 @@ import { FIXED_DT } from './constants.js'
 import { step, applyImpulse, isBallStopped } from './physics.js'
 import { computeFlick, isPointerOnBall } from './input.js'
 import { consumeTouch, onBallSettled, registerGoal } from './turns.js'
-import { resetBall } from './state.js'
+import { resetBall, setDifficulty } from './state.js'
+import { DIFFICULTY_ORDER, getDifficulty } from './difficulty.js'
 import { createRenderer, resize, draw, worldToScreen, screenToWorld } from './render.js'
 
 export function createGame(canvas, state) {
@@ -48,9 +49,13 @@ export function createGame(canvas, state) {
       acc -= FIXED_DT
     }
     draw(r, state, currentAim())
-    drawHud()
-    if (goalFlash > 0) drawGoalFlash()
-    if (state.phase === 'gameover') drawGameOver()
+    if (state.phase === 'config') {
+      drawConfig()
+    } else {
+      drawHud()
+      if (goalFlash > 0) drawGoalFlash()
+      if (state.phase === 'gameover') drawGameOver()
+    }
     raf = requestAnimationFrame(frame)
   }
 
@@ -61,12 +66,22 @@ export function createGame(canvas, state) {
   }
 
   function onDown(e) {
+    const sp = toScreen(e)
+    if (state.phase === 'config') {
+      const hit = hitButton(difficultyButtons(), sp)
+      if (hit) {
+        setDifficulty(state, hit.key)
+        restart()
+      }
+      return
+    }
     if (state.phase === 'gameover') {
-      restart()
+      const hit = hitButton(gameOverButtons(), sp)
+      if (hit && hit.key === 'difficulty') state.phase = 'config'
+      else restart()
       return
     }
     if (state.phase !== 'playing') return // bloqueia durante ballMoving
-    const sp = toScreen(e)
     const wp = screenToWorld(r, sp.x, sp.y)
     if (isPointerOnBall(state.ball, wp)) {
       aiming = true
@@ -108,6 +123,83 @@ export function createGame(canvas, state) {
     goalFlash = 0
   }
 
+  // --- Botões (seletor de dificuldade / fim de jogo) ---
+  // Layout determinístico: usado tanto p/ desenhar quanto p/ hit-test (mesma fonte).
+  function difficultyButtons() {
+    const W = canvas.clientWidth
+    const H = canvas.clientHeight
+    const bw = Math.min(W * 0.74, 340)
+    const bh = 66
+    const gap = 18
+    const total = DIFFICULTY_ORDER.length * bh + (DIFFICULTY_ORDER.length - 1) * gap
+    const x = (W - bw) / 2
+    let y = H / 2 - total / 2 + 20
+    return DIFFICULTY_ORDER.map((key) => {
+      const d = getDifficulty(key)
+      const b = { key, label: d.label, x, y, w: bw, h: bh }
+      y += bh + gap
+      return b
+    })
+  }
+
+  function gameOverButtons() {
+    const W = canvas.clientWidth
+    const H = canvas.clientHeight
+    const bw = Math.min(W * 0.74, 320)
+    const bh = 60
+    const gap = 14
+    const x = (W - bw) / 2
+    const y0 = H / 2 + 70
+    return [
+      { key: 'replay', label: '↻ Jogar de novo', x, y: y0, w: bw, h: bh },
+      { key: 'difficulty', label: '⚙ Mudar dificuldade', x, y: y0 + bh + gap, w: bw, h: bh },
+    ]
+  }
+
+  function hitButton(buttons, p) {
+    return buttons.find((b) => p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) || null
+  }
+
+  function drawButton(b, active) {
+    const ctx = r.ctx
+    ctx.fillStyle = active ? '#ffd83d' : 'rgba(255,255,255,0.12)'
+    roundRectPath(ctx, b.x, b.y, b.w, b.h, 14)
+    ctx.fill()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = active ? '#ffd83d' : 'rgba(255,255,255,0.6)'
+    roundRectPath(ctx, b.x, b.y, b.w, b.h, 14)
+    ctx.stroke()
+    ctx.fillStyle = active ? '#10240f' : '#ffffff'
+    ctx.font = 'bold 22px system-ui, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(b.label, b.x + b.w / 2, b.y + b.h / 2)
+  }
+
+  function roundRectPath(ctx, x, y, w, h, rad) {
+    ctx.beginPath()
+    ctx.moveTo(x + rad, y)
+    ctx.arcTo(x + w, y, x + w, y + h, rad)
+    ctx.arcTo(x + w, y + h, x, y + h, rad)
+    ctx.arcTo(x, y + h, x, y, rad)
+    ctx.arcTo(x, y, x + w, y, rad)
+    ctx.closePath()
+  }
+
+  function drawConfig() {
+    const ctx = r.ctx
+    const W = canvas.clientWidth
+    const H = canvas.clientHeight
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'
+    ctx.fillRect(0, 0, W, H)
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = '#fff'
+    ctx.font = 'bold 26px system-ui, sans-serif'
+    ctx.fillText('Escolha a dificuldade', W / 2, H / 2 - difficultyButtons().length * 44 - 6)
+    for (const b of difficultyButtons()) drawButton(b, state.difficulty === b.key)
+  }
+
   // --- HUD mínimo (verificação do núcleo; HUD completo é match-flow-ui / FLOW-04) ---
   function drawHud() {
     const ctx = r.ctx
@@ -127,6 +219,10 @@ export function createGame(canvas, state) {
     ctx.fillStyle = turnTeam.colorPrimary
     const dots = '●'.repeat(state.touchesLeft) + '○'.repeat(state.touchesPerTurn - state.touchesLeft)
     ctx.fillText(`${turnTeam.flag} ${turnTeam.name}  ${dots}`, W / 2, 12)
+    // dificuldade atual (pequeno, abaixo da vez)
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'
+    ctx.font = '13px system-ui, sans-serif'
+    ctx.fillText(getDifficulty(state.difficulty).label, W / 2, 38)
   }
 
   function drawGoalFlash() {
@@ -161,9 +257,8 @@ export function createGame(canvas, state) {
     ctx.fillText(`${win.flag} ${win.name}`, W / 2, H / 2 - 10)
     ctx.fillStyle = '#fff'
     ctx.font = 'bold 28px system-ui, sans-serif'
-    ctx.fillText(`${state.scoreA} × ${state.scoreB}`, W / 2, H / 2 + 40)
-    ctx.font = '18px system-ui, sans-serif'
-    ctx.fillText('Toque para jogar de novo', W / 2, H / 2 + 90)
+    ctx.fillText(`${state.scoreA} × ${state.scoreB}`, W / 2, H / 2 + 30)
+    for (const b of gameOverButtons()) drawButton(b, false)
   }
 
   function start() {

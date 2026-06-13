@@ -22,6 +22,7 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 - **D-14** — Toolchain de teste: **Vitest** (`npx vitest run`); unit nas regras (turnos, gol), física/feel ficam em verificação manual/empírica (PRD §12). (escolha do usuário 2026-06-13)
 - **D-15** — Linguagem: **JavaScript ESM** (sem TS, sem build step de tipos). (escolha do usuário 2026-06-13)
 - **D-16** — Desenvolver em módulos `/src`; um script de bundle concatena/embute tudo em `index.html` (arquivo único) ao final. (escolha do usuário 2026-06-13)
+- **D-17** — Níveis de dificuldade (Fácil/Médio/Difícil) como presets de `{goalWidth, pegRadius, keeperRadius}` em `src/difficulty.js`; padrão **Médio**. Render e física leem de `state.arena`/`peg.radius`, então adaptam sozinhos. Selecionável antes da partida (seletor tátil na fase `config`) e via "Mudar dificuldade" no fim de jogo. É uma dimensão da Configuração (FR-003/FLOW-03) — o modelo já vive no core; a tela de config de `match-flow-ui` deve incorporá-lo. (pedido do usuário 2026-06-13)
 
 ## Blockers
 
@@ -31,6 +32,7 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 
 - **L-01** — Calibragem inicial (em `src/constants.js`): `DAMP=0.965`, `V_STOP=5`, `STOP_FRAMES=6`, `MAX_SPEED=1800`, `MAX_DRAG=220px`, `MIN_DRAG=15px`. Com isso, peteleco médio (700 u/s) para em ~1,2s (≤1,5s ✓). Atrito alto faz tiro do meio-campo **não** alcançar o gol adversário num toque só — o esperado (jogo de toques encadeados).
 - **L-02** — O peg central de cada time (nº1, "goleiro") em (cx, 80)/(cx, h-80) bloqueia o chute reto pelo meio do gol. Bom para defesa, mas mira de gol exige ângulo. Ajustar posição/raio se ficar difícil demais para o filho mais novo (formação é `[ajustável]` D-06).
+- **L-05** — Calibragem de dificuldade (feedback "gol fácil demais", 2026-06-13): evoluiu para os 3 presets de D-17. Medição de taxa de gol em chutes de fora da área (centrado, força total): **Fácil 62% · Médio 31% · Difícil 0%** (desse ponto; das pontas mirando o canto continua marcável). `src/constants.js` (`PEG_RADIUS=25`, `GOAL_WIDTH=150`) virou só **fallback** — o jogo ativo sempre passa os `diffParams` do preset. Ajustar os presets em `src/difficulty.js` após playtest humano se necessário.
 - **L-03** — Colisão da arena usa retângulo (não elipse/arcos); cantos são só visuais no render. Estável e suficiente; revisitar se a bola parecer "quadrada" nos cantos.
 - **L-04** — `computeFlick` mede o arrasto em **px de tela** (não world units) para feel consistente entre escalas; a velocidade resultante é aplicada em world u/s.
 

@@ -1,6 +1,7 @@
 // Modelo de estado central da partida (MatchState) e factory. CORE-04.
 import { PLAYFIELD, BALL_RADIUS } from './constants.js'
 import { buildArena, buildPegs } from './arena.js'
+import { difficultyParams, getDifficulty } from './difficulty.js'
 
 export const PHASES = ['menu', 'select', 'config', 'playing', 'ballMoving', 'goal', 'gameover']
 
@@ -26,7 +27,8 @@ export function resetBall(ball, pf = PLAYFIELD) {
 export function createMatchState(teamA, teamB, config = {}) {
   const cfg = { ...DEFAULT_CONFIG, ...config }
   const startTeam = cfg.startTeam === 'B' ? 'B' : 'A'
-  const arena = buildArena(PLAYFIELD)
+  const diff = getDifficulty(cfg.difficulty)
+  const diffParams = difficultyParams(diff.key)
   return {
     teamA,
     teamB,
@@ -38,9 +40,21 @@ export function createMatchState(teamA, teamB, config = {}) {
     touchesLeft: cfg.touchesPerTurn,
     phase: 'playing',
     ball: createBall(PLAYFIELD),
-    pegs: buildPegs(PLAYFIELD),
-    arena,
+    pegs: buildPegs(PLAYFIELD, diffParams),
+    arena: buildArena(PLAYFIELD, diffParams),
+    difficulty: diff.key,
+    diffParams,
     winner: null,
     playfield: PLAYFIELD,
   }
+}
+
+// Troca a dificuldade e reconstrói arena/pegs (recalibra o campo). Reseta a bola.
+export function setDifficulty(state, key) {
+  const diff = getDifficulty(key)
+  state.difficulty = diff.key
+  state.diffParams = difficultyParams(diff.key)
+  state.arena = buildArena(state.playfield, state.diffParams)
+  state.pegs = buildPegs(state.playfield, state.diffParams)
+  resetBall(state.ball, state.playfield)
 }

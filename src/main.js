@@ -9,7 +9,8 @@ function boot() {
   if (!canvas) return
   const teamA = getTeam('BRA')
   const teamB = getTeam('ARG')
-  const state = createMatchState(teamA, teamB, { touchesPerTurn: 3, goalsToWin: 5 })
+  const state = createMatchState(teamA, teamB, { touchesPerTurn: 3, goalsToWin: 5, difficulty: 'medio' })
+  state.phase = 'config' // começa pelo seletor de dificuldade
   const game = createGame(canvas, state)
   game.start()
   window.__peteleco = { state, game } // útil p/ debug/verificação
