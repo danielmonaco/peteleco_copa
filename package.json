@@ -1,0 +1,17 @@
+{
+  "name": "peteleco-da-copa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Jogo web de futebol de peteleco hot-seat (Canvas 2D)",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "vitest": "^2.1.8"
+  }
+}
