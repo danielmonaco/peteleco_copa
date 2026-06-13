@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { TEAMS, getTeam, withDistinctColor } from './teams.js'
+import { TEAMS, getTeam, withDistinctColor, colorDistance } from './teams.js'
 
 describe('seleções (FLOW-02)', () => {
   it('tem 48 seleções', () => {
@@ -42,5 +42,21 @@ describe('withDistinctColor', () => {
     const t = { code: 'XXX', name: 'X', flag: '🏳️', colorPrimary: '#abcabc', colorSecondary: '#123456' }
     const out = withDistinctColor(t, '#ABCABC')
     expect(out.colorPrimary.toLowerCase()).not.toBe('#abcabc')
+  })
+
+  it('troca para o 2º uniforme quando as cores são apenas PARECIDAS (não idênticas)', () => {
+    // Brasil (amarelo) vs Colômbia (amarelo): primárias próximas
+    const bra = getTeam('BRA')
+    const col = getTeam('COL')
+    expect(colorDistance(bra.colorPrimary, col.colorPrimary)).toBeLessThan(100)
+    const out = withDistinctColor(col, bra.colorPrimary)
+    expect(out.recolored).toBe(true)
+    expect(colorDistance(out.colorPrimary, bra.colorPrimary)).toBeGreaterThan(100)
+  })
+
+  it('mantém a cor quando as camisas já são bem diferentes', () => {
+    const bra = getTeam('BRA') // amarelo
+    const arg = getTeam('ARG') // azul claro
+    expect(withDistinctColor(arg, bra.colorPrimary).colorPrimary).toBe(arg.colorPrimary)
   })
 })

@@ -65,14 +65,32 @@ export function getTeam(code) {
   return TEAMS.find((t) => t.code === code) || TEAMS[0]
 }
 
-// Garante cor distinta quando os dois lados escolhem o mesmo país (FLOW-02 AC2).
-export function withDistinctColor(team, takenColor) {
-  if (!takenColor || team.colorPrimary.toLowerCase() !== takenColor.toLowerCase()) {
+function hexToRgb(hex) {
+  const c = hex.replace('#', '')
+  const n = c.length === 3 ? c.split('').map((x) => x + x).join('') : c
+  return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16)]
+}
+
+// Distância de cor em RGB (0..441). Abaixo do limiar => cores "parecidas".
+export function colorDistance(a, b) {
+  const [r1, g1, b1] = hexToRgb(a)
+  const [r2, g2, b2] = hexToRgb(b)
+  return Math.hypot(r1 - r2, g1 - g2, b1 - b2)
+}
+
+// Garante camisas distinguíveis. Se a cor primária do time for parecida com a do
+// oponente (mesmo país OU cores semelhantes), troca para o 2º uniforme; se ainda
+// colidir, usa uma cor de contraste garantida. FLOW-02 AC2.
+export function withDistinctColor(team, takenColor, threshold = 100) {
+  if (!takenColor || colorDistance(team.colorPrimary, takenColor) > threshold) {
     return team
   }
-  const alt =
-    team.colorSecondary && team.colorSecondary.toLowerCase() !== takenColor.toLowerCase()
-      ? team.colorSecondary
-      : '#ff5a3c'
-  return { ...team, colorPrimary: alt, recolored: true }
+  // Ao recolorir, zera colorSecondary p/ o número do peg cair no contraste
+  // automático (senão ficaria igual à nova cor primária e sumiria).
+  if (team.colorSecondary && colorDistance(team.colorSecondary, takenColor) > threshold) {
+    return { ...team, colorPrimary: team.colorSecondary, colorSecondary: undefined, recolored: true }
+  }
+  const fallback = ['#ffffff', '#111111', '#ff5a3c', '#3da5ff', '#ffd83d', '#9b59b6']
+    .find((c) => colorDistance(c, takenColor) > threshold) || '#ff5a3c'
+  return { ...team, colorPrimary: fallback, colorSecondary: undefined, recolored: true }
 }

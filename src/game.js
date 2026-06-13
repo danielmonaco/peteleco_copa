@@ -215,24 +215,44 @@ export function createGame(canvas, state, opts = {}) {
     const ctx = r.ctx
     ctx.setTransform(r.dpr, 0, 0, r.dpr, 0, 0)
     const W = canvas.clientWidth
-    const turnTeam = state.currentTeam === 'A' ? state.teamA : state.teamB
-    ctx.font = 'bold 20px system-ui, sans-serif'
-    ctx.textBaseline = 'top'
-    ctx.textAlign = 'left'
-    ctx.fillStyle = state.teamA.colorPrimary
-    ctx.fillText(`${state.teamA.flag} ${state.scoreA}`, 12, 10)
-    ctx.textAlign = 'right'
-    ctx.fillStyle = state.teamB.colorPrimary
-    ctx.fillText(`${state.scoreB} ${state.teamB.flag}`, W - 12, 10)
-    // vez + toques
-    ctx.textAlign = 'center'
-    ctx.fillStyle = turnTeam.colorPrimary
-    const dots = '●'.repeat(state.touchesLeft) + '○'.repeat(state.touchesPerTurn - state.touchesLeft)
-    ctx.fillText(`${turnTeam.flag} ${turnTeam.name}  ${dots}`, W / 2, 12)
-    // dificuldade atual (pequeno, abaixo da vez)
+    const H = canvas.clientHeight
+    const s = r.scale
+    const pf = state.playfield
+    // Time A joga embaixo (seus pegs na metade de baixo); time B em cima.
+    const yTop = Math.max(22, r.oy - 6) // acima do gol de cima
+    const yBottom = Math.min(H - 22, r.oy + pf.h * s + 6) // abaixo do gol de baixo
+    drawTeamBadge(W / 2, yTop, state.teamB, state.scoreB, state.currentTeam === 'B')
+    drawTeamBadge(W / 2, yBottom, state.teamA, state.scoreA, state.currentTeam === 'A')
+    // dificuldade no canto superior esquerdo
     ctx.fillStyle = 'rgba(255,255,255,0.7)'
     ctx.font = '13px system-ui, sans-serif'
-    ctx.fillText(getDifficulty(state.difficulty).label, W / 2, 38)
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'top'
+    ctx.fillText(getDifficulty(state.difficulty).label, 12, 12)
+  }
+
+  function drawTeamBadge(cx, y, team, score, active) {
+    const ctx = r.ctx
+    const dots = active
+      ? '  ' + '●'.repeat(state.touchesLeft) + '○'.repeat(state.touchesPerTurn - state.touchesLeft)
+      : ''
+    const label = `${team.flag} ${team.name}  ${score}${dots}`
+    ctx.font = `bold ${active ? 19 : 16}px system-ui, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    const w = ctx.measureText(label).width + 26
+    const h = 32
+    ctx.fillStyle = active ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.42)'
+    roundRectPath(ctx, cx - w / 2, y - h / 2, w, h, 16)
+    ctx.fill()
+    if (active) {
+      ctx.strokeStyle = team.colorPrimary
+      ctx.lineWidth = 2.5
+      roundRectPath(ctx, cx - w / 2, y - h / 2, w, h, 16)
+      ctx.stroke()
+    }
+    ctx.fillStyle = active ? '#ffffff' : 'rgba(255,255,255,0.85)'
+    ctx.fillText(label, cx, y)
   }
 
   function drawGoalFlash() {

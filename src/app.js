@@ -31,8 +31,8 @@ function boot() {
   function startMatch(codeA, codeB, config) {
     const teamA = getTeam(codeA)
     let teamB = getTeam(codeB)
-    // Dois lados com o mesmo país → força cor distinta no time B (FLOW-02 AC2).
-    if (teamA.code === teamB.code) teamB = withDistinctColor(teamB, teamA.colorPrimary)
+    // Camisas parecidas (mesmo país OU cores semelhantes) → 2º uniforme no time B (FLOW-02 AC2).
+    teamB = withDistinctColor(teamB, teamA.colorPrimary)
 
     if (game) game.stop()
     const state = createMatchState(teamA, teamB, config)
