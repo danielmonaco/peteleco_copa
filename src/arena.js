@@ -32,12 +32,14 @@ export function buildPegs(pf = PLAYFIELD, opts = {}) {
   const cx = pf.w / 2
   const pegR = opts.pegRadius ?? PEG_RADIUS
   const keeperR = opts.keeperRadius ?? pegR
+  // Formação 2-1-2: P2/P3 alinhados às traves, P1 libero, P4/P5 alas
+  const gHalf = (opts.goalWidth ?? GOAL_WIDTH) / 2
   const baseA = [
-    [cx, pf.h - 80, 1], // "goleiro"
-    [cx - 120, pf.h - 195, 2], // zaga
-    [cx + 120, pf.h - 195, 3],
-    [cx - 78, pf.h - 330, 4], // meio
-    [cx + 78, pf.h - 330, 5],
+    [cx,          pf.h - 220, 1], // libero: (300, 680)
+    [cx - gHalf,  pf.h - 130, 2], // def. esq. na trave esq.
+    [cx + gHalf,  pf.h - 130, 3], // def. dir. na trave dir.
+    [cx - 150,    pf.h - 310, 4], // ala esq.: (150, 590)
+    [cx + 150,    pf.h - 310, 5], // ala dir.: (450, 590)
   ]
   const radiusFor = (number) => (number === 1 ? keeperR : pegR)
   const pegs = []

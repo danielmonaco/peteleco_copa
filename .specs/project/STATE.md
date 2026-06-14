@@ -41,6 +41,7 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 - [ ] Confirmar/inserir as 48 seleções com code, name, flag, colorPrimary, colorSecondary.
 - [ ] Calibrar empiricamente: damping de atrito, teto de força do slingshot, limiar de "bola parada".
 - [ ] Testar em 320px de largura desde cedo (armadilha comum do PRD §13).
+- [ ] Gerar bundle `dist/index.html` (arquivo único offline) antes da distribuição: `npm run build`.
 
 ## Deferred ideas
 

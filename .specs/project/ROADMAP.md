@@ -19,7 +19,7 @@ Objetivo: deixar a brincadeira gostosa e clara para crianças.
 
 | Feature | Cobre (FR) | Status |
 |---|---|---|
-| **game-polish** — tutorial relâmpago, efeitos sonoros, comemoração de gol, pausar/reiniciar | FR-012, FR-013, FR-014, FR-015 | Pending |
+| **game-polish** — tutorial relâmpago, efeitos sonoros, comemoração de gol, pausar/reiniciar | FR-012, FR-013, FR-014, FR-015 | ✅ Done (2026-06-13) |
 
 ## Milestone 3 — Extras (P2)
 

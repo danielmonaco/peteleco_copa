@@ -39,6 +39,7 @@ function boot() {
     game = createGame(canvas, state, {
       manageScreens: false,
       onGameOver: (winner) => ui.showGameOver(winner, state.scoreA, state.scoreB, teamA, teamB),
+      onMenuRequest: () => { game = null; ui.showMenu() },
     })
     game.start()
   }

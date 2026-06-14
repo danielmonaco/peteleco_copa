@@ -19,6 +19,9 @@ export function createRenderer(canvas, pf = PLAYFIELD) {
   return r
 }
 
+// Espaço vertical mínimo (px CSS) reservado acima/abaixo do campo para os badges de time.
+const BADGE_V = 40
+
 export function resize(r) {
   const pf = r.pf
   const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1
@@ -26,10 +29,11 @@ export function resize(r) {
   const ch = r.canvas.clientHeight || pf.h
   r.canvas.width = Math.round(cw * dpr)
   r.canvas.height = Math.round(ch * dpr)
-  const scale = Math.min(cw / pf.w, ch / pf.h)
-  r.scale = scale
-  r.ox = (cw - pf.w * scale) / 2
-  r.oy = (ch - pf.h * scale) / 2
+  // Reserva BADGE_V px acima e abaixo para que os badges nunca sobreponham o campo.
+  const scale = Math.min(cw / pf.w, (ch - 2 * BADGE_V) / pf.h)
+  r.scale = Math.max(0.1, scale)
+  r.ox = (cw - pf.w * r.scale) / 2
+  r.oy = (ch - pf.h * r.scale) / 2
   r.dpr = dpr
 }
 
