@@ -49,7 +49,8 @@ function collideWalls(ball, a) {
 }
 
 // Reflexão círculo-círculo contra pegs estáticos (o peg não se move — D-01).
-function collidePegs(ball, pegs) {
+// `restitution` vem da dificuldade (mais alto = desvio mais forte); fallback na constante.
+function collidePegs(ball, pegs, restitution = RESTITUTION_PEG) {
   for (const p of pegs) {
     const dx = ball.x - p.x
     const dy = ball.y - p.y
@@ -63,8 +64,8 @@ function collidePegs(ball, pegs) {
       ball.y = p.y + ny * rr
       const vn = ball.vx * nx + ball.vy * ny
       if (vn < 0) {
-        ball.vx -= (1 + RESTITUTION_PEG) * vn * nx
-        ball.vy -= (1 + RESTITUTION_PEG) * vn * ny
+        ball.vx -= (1 + restitution) * vn * nx
+        ball.vy -= (1 + restitution) * vn * ny
       }
     }
   }
@@ -80,6 +81,10 @@ export function step(state, dt = FIXED_DT) {
   const speed = Math.hypot(b.vx, b.vy)
   if (speed === 0) return null
 
+  // Parâmetros calibrados pela dificuldade (fallback nas constantes globais).
+  const damp = state.diffParams?.damp ?? DAMP
+  const pegRest = state.diffParams?.pegRestitution ?? RESTITUTION_PEG
+
   const dist = speed * dt
   const nSub = Math.max(1, Math.ceil(dist / (b.radius * 0.5)))
   const sdt = dt / nSub
@@ -90,13 +95,13 @@ export function step(state, dt = FIXED_DT) {
     goal = checkGoal(b, a)
     if (!goal) {
       collideWalls(b, a)
-      collidePegs(b, state.pegs)
+      collidePegs(b, state.pegs, pegRest)
     }
   }
 
   // Atrito: damping forte por passo + assentar abaixo do limiar.
-  b.vx *= DAMP
-  b.vy *= DAMP
+  b.vx *= damp
+  b.vy *= damp
   const sp = Math.hypot(b.vx, b.vy)
   if (sp < V_STOP) {
     b.stopCounter = (b.stopCounter || 0) + 1

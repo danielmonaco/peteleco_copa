@@ -35,7 +35,15 @@ export function createGame(canvas, state, opts = {}) {
 
   function currentAim() {
     if (!aiming || !pointerScreen) return null
-    return computeFlick(ballScreenAtStart, pointerScreen)
+    // No Difícil a prévia da mira é ocultada (chutar "no escuro" — D-17).
+    if (state.diffParams && state.diffParams.showAim === false) return null
+    return computeFlick(ballScreenAtStart, pointerScreen, flickOpts())
+  }
+
+  // Opções de força do peteleco vindas da dificuldade (teto de força — D-17).
+  function flickOpts() {
+    const ms = state.diffParams && state.diffParams.maxSpeed
+    return ms ? { maxSpeed: ms } : {}
   }
 
   function update(dt) {
@@ -143,7 +151,7 @@ export function createGame(canvas, state, opts = {}) {
     if (!aiming) return
     aiming = false
     const sp = toScreen(e)
-    const flick = computeFlick(ballScreenAtStart, sp)
+    const flick = computeFlick(ballScreenAtStart, sp, flickOpts())
     pointerScreen = null
     if (flick.fired) {
       applyImpulse(state.ball, flick.vx, flick.vy)

@@ -12,7 +12,7 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 - **D-04** — Gol contra conta para o adversário. `[ajustável]` (Q14.1 = sim)
 - **D-05** — Sem goleiro especial; defesa pelos jogadores estáticos + boca estreita do gol. `[ajustável]` (Q14.2)
 - **D-06** — Formação **2-1-2** fixa, espelhada, inspirada no tabuleiro físico: P2/P3 alinhados às traves (x = cx ± goalWidth/2), P1 libero central, P4/P5 alas abertos (cx ± 150). `[ajustável]` (Q14.3)
-- **D-07** — Padrão de toques por vez = 3; gols para vencer = 5. (Q14.4)
+- **D-07** — Gols para vencer = 5. Toques por vez deixaram de ser fixos em 3: agora seguem a dificuldade (Fácil 3 · Médio 2 · Difícil 1) — ver D-17. Um override explícito em `config.touchesPerTurn` ainda vence o preset. (Q14.4; revisado 2026-06-14 — "jogo fácil demais")
 - **D-08** — Sem relógio; vitória só por número de gols; não existe empate. `[ajustável]`
 - **D-09** — Som implementado via Web Audio API procedural (`src/audio.js`): peteleco (noise burst), gol (arpejo C-E-G-C) e apito final (dois bipes). Sem assets externos. (FR-013, 2026-06-13)
 - **D-10** — Stack: Canvas 2D nativo + Pointer Events, sem framework nem engine de física; entrega como arquivo único `index.html`. (PRD §8)
@@ -22,7 +22,14 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 - **D-14** — Toolchain de teste: **Vitest** (`npx vitest run`); unit nas regras (turnos, gol), física/feel ficam em verificação manual/empírica (PRD §12). (escolha do usuário 2026-06-13)
 - **D-15** — Linguagem: **JavaScript ESM** (sem TS, sem build step de tipos). (escolha do usuário 2026-06-13)
 - **D-16** — Desenvolver em módulos `/src`; um script de bundle concatena/embute tudo em `index.html` (arquivo único) ao final. (escolha do usuário 2026-06-13)
-- **D-17** — Níveis de dificuldade (Fácil/Médio/Difícil) como presets de `{goalWidth, pegRadius, keeperRadius}` em `src/difficulty.js`; padrão **Médio**. Render e física leem de `state.arena`/`peg.radius`, então adaptam sozinhos. Selecionável antes da partida (seletor tátil na fase `config`) e via "Mudar dificuldade" no fim de jogo. (pedido do usuário 2026-06-13)
+- **D-17** — Níveis de dificuldade (Fácil/Médio/Difícil) como presets em `src/difficulty.js`; padrão **Médio**. Render e física leem de `state.arena`/`state.diffParams`, então adaptam sozinhos. Selecionável na fase `config` e via "Mudar dificuldade" no fim de jogo. **Ampliado 2026-06-14** (feedback "muito fácil"): o preset deixou de ser só geometria e passou a controlar também a *economia/física* da partida, mantendo D-01/D-05 intactos (sem goleiro, pegs estáticos):
+  - `touchesPerTurn` — 3/2/1 (corta o "walk-up" até o gol; maior alavanca). Consumido por `state.js`.
+  - `damp` — 0.965/0.961/0.957: atrito por passo, bola morre antes no difícil. Consumido por `physics.step` (fallback em `DAMP`).
+  - `pegRestitution` — 0.72/0.80/0.88: defensores mais repelentes punem chute impreciso. Consumido por `physics.collidePegs` (fallback em `RESTITUTION_PEG`).
+  - `maxSpeed` — 1800/1600/1400 (u/s): teto de força do peteleco; menor = bola percorre menos. Consumido por `game.flickOpts()` → `computeFlick` (fallback em `MAX_SPEED`). (2026-06-14)
+  - `showAim` — Fácil/Médio mostram a prévia da mira; Difícil esconde (`game.currentAim` retorna `null`).
+  - **Tamanho dos jogadores escalonado p/ cima** (pedido 2026-06-14, "jogador maior"): `pegRadius`/`keeperRadius` = Fácil 22/24 · Médio 26/28 · Difícil 30/32. Ou seja, Fácil herdou o tamanho do Médio antigo, Médio herdou o do Difícil antigo, e o Difícil cresceu mais. Campo fica mais congestionado em todos os níveis.
+  Valores em `[ajustável]` — calibrar empiricamente em playtest. NOTA: `touchesPerTurn` do preset hoje é **sobrescrito** pelo seletor manual da tela de config (`ui.js`, opções 2/3/4); o preset só vale se a config não passar `touchesPerTurn`. Pendente: retrabalhar como toques×dificuldade convivem. (pedido do usuário 2026-06-13/14)
 - **D-18** — Badges de time (nome + placar) ficam **fora** do campo de jogo: `resize()` reserva `BADGE_V=40px` acima e abaixo antes de calcular o scale, garantindo `r.oy >= 40` em qualquer proporção de tela. (2026-06-13)
 
 ## Blockers
@@ -38,6 +45,7 @@ Regras travadas no PRD §5 e questões em aberto §14 resolvidas com os defaults
 - **L-05** — Calibragem de dificuldade (feedback "gol fácil demais", 2026-06-13): evoluiu para os 3 presets de D-17. Medição de taxa de gol em chutes de fora da área (centrado, força total): **Fácil 62% · Médio 31% · Difícil 0%** (desse ponto; das pontas mirando o canto continua marcável). Ajustar os presets em `src/difficulty.js` após playtest humano se necessário.
 - **L-06** — Badges sobrepostos ao gol: a causa raiz não é lógica condicional no draw, mas a origem do cálculo de scale. Corrigir no `resize()` (reservar espaço antes de calcular) é mais robusto do que tentar compensar depois.
 - **L-07** — Distribuição via arquivo único: `npm run build` gera `dist/index.html` (≈31kB), que pode ser enviado por AirDrop/WhatsApp e aberto offline no Safari/Chrome do celular sem necessidade de servidor.
+- **L-08** — "Jogo fácil demais" (2026-06-14): o gargalo **não** é a precisão de um chute (L-05 já mostrava gol de longe difícil), e sim a **economia de turno** — 3 toques permitem "driblar" a bola até a frente do gol e finalizar encostado. Maior alavanca de dificuldade = **menos toques por vez**, não estreitar mais o gol/engrossar pegs. Geometria já estava saturada (Difícil = 0% de fora da área). Lição: antes de calibrar geometria, questionar a mecânica de turno. Implementado via D-17 ampliado (toques/atrito/repique/mira por dificuldade).
 
 ## Todos
 

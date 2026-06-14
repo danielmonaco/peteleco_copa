@@ -89,7 +89,7 @@ export function createUI(root, handlers = {}) {
   }
 
   // --- Config ---
-  const segTouches = buildSeg([['1', 1], ['2', 2], ['3', 3]], cfg.touchesPerTurn, (v) => (cfg.touchesPerTurn = v))
+  const segTouches = buildSeg([['2', 2], ['3', 3], ['4', 4]], cfg.touchesPerTurn, (v) => (cfg.touchesPerTurn = v))
   const segGoals = buildSeg([['3 gols', 3], ['5 gols', 5]], cfg.goalsToWin, (v) => (cfg.goalsToWin = v))
   const segDiff = buildSeg(
     DIFFICULTY_ORDER.map((k) => [getDifficulty(k).label, k]),

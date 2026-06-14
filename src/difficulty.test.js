@@ -22,6 +22,43 @@ describe('presets de dificuldade', () => {
     expect(getDifficulty('xyz').key).toBe('medio')
     expect(getDifficulty(undefined).key).toBe('medio')
   })
+
+  it('quanto mais difícil: menos toques, mais atrito, pegs mais repelentes, sem mira', () => {
+    const f = DIFFICULTIES.facil, m = DIFFICULTIES.medio, d = DIFFICULTIES.dificil
+    // Toques por vez decrescem (3/2/1) — fim do "walk-up" até o gol.
+    expect(f.touchesPerTurn).toBeGreaterThan(m.touchesPerTurn)
+    expect(m.touchesPerTurn).toBeGreaterThan(d.touchesPerTurn)
+    // Atrito maior no difícil = damp menor (bola morre antes).
+    expect(f.damp).toBeGreaterThan(d.damp)
+    // Defensores mais repelentes no difícil.
+    expect(d.pegRestitution).toBeGreaterThan(f.pegRestitution)
+    // Jogadores crescem do fácil ao difícil.
+    expect(d.pegRadius).toBeGreaterThan(m.pegRadius)
+    expect(m.pegRadius).toBeGreaterThan(f.pegRadius)
+    // Teto de força diminui do fácil ao difícil (bola percorre menos).
+    expect(f.maxSpeed).toBeGreaterThan(m.maxSpeed)
+    expect(m.maxSpeed).toBeGreaterThan(d.maxSpeed)
+    // Mira escondida só no difícil.
+    expect(f.showAim).toBe(true)
+    expect(d.showAim).toBe(false)
+  })
+
+  it('escalonamento de tamanho: cada nível herda o tamanho do nível acima', () => {
+    // Pedido do usuário (2026-06-14): Fácil = Médio antigo, Médio = Difícil antigo.
+    expect(DIFFICULTIES.facil.pegRadius).toBe(22)
+    expect(DIFFICULTIES.facil.keeperRadius).toBe(24)
+    expect(DIFFICULTIES.medio.pegRadius).toBe(26)
+    expect(DIFFICULTIES.medio.keeperRadius).toBe(28)
+  })
+
+  it('difficultyParams propaga os campos de física/economia/HUD', () => {
+    const p = difficultyParams('dificil')
+    expect(p.touchesPerTurn).toBe(DIFFICULTIES.dificil.touchesPerTurn)
+    expect(p.damp).toBe(DIFFICULTIES.dificil.damp)
+    expect(p.pegRestitution).toBe(DIFFICULTIES.dificil.pegRestitution)
+    expect(p.maxSpeed).toBe(DIFFICULTIES.dificil.maxSpeed)
+    expect(p.showAim).toBe(DIFFICULTIES.dificil.showAim)
+  })
 })
 
 describe('parametrização de arena/pegs pela dificuldade', () => {

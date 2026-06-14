@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { createMatchState, DEFAULT_CONFIG, resetBall, createBall } from './state.js'
+import { getDifficulty } from './difficulty.js'
 
 const teamA = { code: 'BRA', name: 'Brasil', flag: '🇧🇷', colorPrimary: '#FFDF00' }
 const teamB = { code: 'ARG', name: 'Argentina', flag: '🇦🇷', colorPrimary: '#75AADB' }
@@ -7,7 +8,8 @@ const teamB = { code: 'ARG', name: 'Argentina', flag: '🇦🇷', colorPrimary: 
 describe('createMatchState', () => {
   it('aplica defaults de config quando omitida', () => {
     const s = createMatchState(teamA, teamB)
-    expect(s.touchesPerTurn).toBe(DEFAULT_CONFIG.touchesPerTurn)
+    // Toques por vez agora seguem a dificuldade (default médio); só override explícito vence.
+    expect(s.touchesPerTurn).toBe(getDifficulty('medio').touchesPerTurn)
     expect(s.goalsToWin).toBe(DEFAULT_CONFIG.goalsToWin)
   })
 
